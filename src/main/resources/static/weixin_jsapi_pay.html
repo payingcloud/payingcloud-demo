@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <title>微信公众号支付</title>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <h3 class="text-center">选择支付方式</h3>
+        <h4 class="text-center">支付金额 ￥1.00</h4>
+    </div>
+</div>
+
+<script>
+    function getUrlParam(name) {
+        //构造一个含有目标参数的正则表达式对象
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        //匹配目标参数
+        var r = window.location.search.substr(1).match(reg);
+        //返回参数值
+        if (r != null)
+            return unescape(r[2]);
+        return null;
+    }
+
+    function onBridgeReady() {
+        var appId = getUrlParam('appId');
+        var timeStamp = getUrlParam('timeStamp');
+        var nonceStr = getUrlParam('nonceStr');
+        var Package = getUrlParam('package');
+        var signType = getUrlParam('signType');
+        var paySign = getUrlParam('paySign');
+        WeixinJSBridge.invoke('getBrandWCPayRequest', {
+            "appId": appId,//"wx2421b1c4370ec43b", //公众号名称，由商户传入
+            "timeStamp": timeStamp,//"1395712654", //时间戳，自1970年以来的秒数
+            "nonceStr": nonceStr,//"e61463f8efa94090b1f366cccfbbb444", //随机串
+            "package": Package,//"prepay_id=u802345jgfjsdfgsdg888",
+            "signType": signType,//"MD5", //微信签名方式:
+            "paySign": paySign//"70EA570631E4BB79628FBCA90534C63FF7FADD89" //微信签名
+        }, function (res) { // 使用以上方式判断前端返回,微信团队郑重提示：res.err_msg将在用户支付成功后返回  ok，但并不保证它绝对可靠。
+            //alert(res.err_msg);
+            if (res.err_msg == "get_brand_wcpay_request:ok") {
+                alert("支付成功");
+            }
+            if (res.err_msg == "get_brand_wcpay_request:cancel") {
+                alert("交易取消");
+            }
+            if (res.err_msg == "get_brand_wcpay_request:fail") {
+                alert("支付失败");
+            }
+        });
+    }
+
+    function callPay() {
+        if (typeof WeixinJSBridge == "undefined") {
+            if (document.addEventListener) {
+                document.addEventListener('WeixinJSBridgeReady', onBridgeReady,
+                    false);
+            } else if (document.attachEvent) {
+                document.attachEvent('WeixinJSBridgeReady', onBridgeReady);
+                document.attachEvent('onWeixinJSBridgeReady', onBridgeReady);
+            }
+        } else {
+            onBridgeReady();
+        }
+    }
+
+    callPay();
+
+</script>
+</body>
+</html>

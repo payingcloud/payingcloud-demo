@@ -1,0 +1,69 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
+    }
+    dependencies {
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:1.5.3.RELEASE'
+        classpath 'com.bmuschko:gradle-docker-plugin:3.0.6'
+    }
+}
+
+apply plugin: 'org.springframework.boot'
+apply plugin: 'com.bmuschko.docker-java-application'
+apply plugin: 'com.bmuschko.docker-remote-api'
+
+bootRun {
+    addResources = true
+}
+
+repositories {
+    mavenLocal()
+    maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
+    jcenter()
+    maven { url "http://dl.bintray.com/payingcloud/maven" }
+}
+
+dependencies {
+    compile 'cn.payingcloud:commons-weixin:0.2.13'
+    compile 'cn.payingcloud:payingcloud-java-sdk:1.0'
+    compile 'io.springfox:springfox-swagger2:2.6.1'
+    compile 'io.springfox:springfox-swagger-ui:2.6.1'
+    compile 'org.springframework.boot:spring-boot-starter-web'
+    compile 'org.springframework.boot:spring-boot-actuator'
+
+    testCompile 'org.springframework.boot:spring-boot-starter-test'
+}
+
+[compileJava, compileTestJava, javadoc]*.options*.encoding = 'UTF-8'
+
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+
+docker {
+    registryCredentials {
+        url = 'https://registry.cn-beijing.aliyuncs.com'
+        username = project.hasProperty('dockerUser') ? project.property('dockerUser') : '<dockerUser>'
+        password = project.hasProperty('dockerPassword') ? project.property('dockerPassword') : '<dockerPassword>'
+    }
+}
+
+ext {
+    dockerImageName = 'registry.cn-beijing.aliyuncs.com/payingcloud/demo'
+}
+
+task dockerBuild(type: DockerBuildImage) {
+    dependsOn build
+    copy {
+        from("Dockerfile")
+        into("build/libs")
+    }
+    inputDir = file('build/libs')
+    tag = dockerImageName
+}
+
+task dockerPush(type: DockerPushImage) {
+    dependsOn dockerBuild
+    imageName = dockerImageName
+}

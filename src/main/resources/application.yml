@@ -1,0 +1,16 @@
+server:
+  port: 8080
+spring:
+  jackson:
+    serialization:
+      indent-output: true
+
+api:
+  endpoint: https://api.payingcloud.cn
+  accessKeyId: changeme
+  accessKeySecret: changeme
+weixin: # 微信公众号支付需要
+  appId: changeme
+  appSecret: changeme
+  token: changeme
+

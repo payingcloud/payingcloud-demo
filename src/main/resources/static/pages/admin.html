@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN" ng-app="app">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>PayingCloud-管理演示</title>
+    <link rel="stylesheet" href="../css/bootstrap.min.css">
+    <link rel="stylesheet" href="../css/angular-ui-grid.css"/>
+    <script src="../js/angular.js"></script>
+    <script src="../js/jquery-3.1.0.js"></script>
+    <script src="../js/angular-touch.js"></script>
+    <script src="../js/angular-animate.js"></script>
+    <script src="../js/angular-ui-grid.js"></script>
+    <script src="../js/app.js"></script>
+
+    <style>
+        .modeBox{
+            position: fixed;
+            top:0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: rgba(200,200,200,0.3);
+        }
+        .mode{
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #fff;
+        }
+
+        .row{
+            /*margin-top: 20px;*/
+        }
+        .btnBox{
+            margin-top: 20px;
+        }
+        .btnBox p{
+            margin-left: 40px;
+        }
+        .bidan{
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        .tishi{
+            position: absolute;
+            top: 70px;
+            left: 50%;
+            background: #eee;
+            width: 340px;
+            margin-left: -170px;
+            z-index: 9999;
+            height: 200px;
+        }
+        .tishi .row.tl{
+            margin-bottom: 100px;
+        }
+        .tishi .row .btn-danger{
+            margin-right: 40px;
+        }
+        .grid1{
+            height: 240px;
+            width: 900px;
+            margin: 0 auto;
+        }
+
+        .pageA span{
+            display: inline-block;
+            padding: 8px 10px;
+            border: 1px solid #a6a6a6;
+            cursor: pointer;
+        }
+        .selectpicker{
+            height: 40px;
+            width: 60px;
+            line-height: 40px;
+            text-align: center;
+            border: 1px solid #a6a6a6;
+
+        }
+        /*input[disabled]{
+            border: 0px solid red;
+            background-color:#fff;
+        }*/
+        .taPage{
+            height: 430px;
+            overflow :auto;
+            overflow-x:hidden;
+            border-bottom: 1px solid #eee;
+        }
+
+        .orderR{
+            height: 224px;
+            overflow :auto;
+            overflow-x:hidden;
+            border-bottom: 1px solid #eee;
+        }
+        .upClick{
+            background: #a6a6a6;
+        }
+        .RUpClick{
+            background: #a6a6a6;
+        }
+
+    </style>
+
+
+</head>
+
+<body>
+<div class="container" ng-controller="MainCtrl" ng-init="ishow=false">
+    <div class="row">
+        <h3 class="text-center">管理演示</h3>
+    </div>
+
+    <!--<div external-scopes="clickHandler" ui-grid="gridOptions1" ui-grid-pagination class="grid"></div>-->
+    <div>
+        <div class="taPage">
+            <table class="table table-bordered table-responsive">
+                <tr>
+                    <th class="col-md-2 text-center">收款单号</th>
+                    <th class="col-md-2 text-center">名称</th>
+                    <th class="col-md-2 text-center">金额(分)</th>
+                    <th class="col-md-2 text-center">下单时间</th>
+                    <th class="col-md-2 text-center">支付渠道</th>
+                    <th class="col-md-1 text-center">状态</th>
+                    <th class="col-md-1 text-center">操作</th>
+                </tr>
+                <tr class="text-center" ng-repeat="o in order track by $index">
+                    <td class="col-md-2">{{o.chargeNo}}</td>
+                    <td class="col-md-2">{{o.subject}}</td>
+                    <td class="col-md-2">{{o.amount}}</td>
+                    <td class="col-md-2">{{o.startedAt | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                    <td class="col-md-2">{{o.channel}}</td>
+                    <td class="col-md-1">{{o.status}}</td>
+                    <td class="col-md-1"><a href="javascript:;" ng-click="orderClick()">详情</a></td>
+                </tr>
+            </table>
+        </div>
+        <div class="row pageA text-center" ng-init="t='10'">
+            <button class="btn btn-primary btn-default" ng-click="upClick()" ng-disabled="pu" role="button">上一页</button>
+            <button class="btn btn-primary" ng-click="nextClick()"  ng-disabled="pd" role="button">下一页</button>
+            <select class="selectpicker" ng-change="change(t)" ng-model="t">
+                <option value="10">10</option>
+                <option value ="20">20</option>
+                <option value ="30">30</option>
+            </select>
+        </div>
+        <!--<div>
+            <nav>
+                <ul class="pagination">
+                    <li><a href="#">&laquo;</a></li>
+                    <li><a href="#">1</a></li>
+                    <li><a href="#">2</a></li>
+                    <li><a href="#">3</a></li>
+                    <li><a href="#">4</a></li>
+                    <li><a href="#">5</a></li>
+                    <li><a href="#">&raquo;</a></li>
+                </ul>
+            </nav>
+        </div>-->
+    </div>
+
+    <div class="modeBox" ng-show="ishow">
+        <div ng-show="ishow" class="bidan">
+            <div class="mode container" ng-show="ishow">
+                <div class="row">
+                    <div class="col-lg-10 col-lg-offset-1 h2 text-center">
+                        订单详情
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <span class="h5">收款单号:</span>
+                        <span>{{arr.chargeNo}}</span>
+                    </div>
+                    <div class="col-lg-4">
+                        <span class="h5">商品名:</span>
+                        <span>{{arr.subject}}</span>
+                    </div>
+                    <div class="col-lg-4">
+                        <span class="h5">金额:</span>
+                        <span>{{arr.amount}}</span>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-lg-4">
+                        <span class="h5">下单时间:</span>
+                        <span>{{arr.startedAt | date:'yyyy-MM-dd HH:mm:ss'}}</span>
+                    </div>
+                    <div class="col-lg-4">
+                        <span class="h5">支付的渠道:</span>
+                        <span>{{arr.channel}}</span>
+                    </div>
+                    <div class="col-lg-4">
+                        <span class="h5">状态:</span>
+                        <span>{{arr.status}}</span>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-10 col-lg-offset-1 h2 text-center">
+                        退款
+                    </div>
+                </div>
+
+                <div class="row orderR">
+                    <table class="table table-bordered table-responsive">
+                        <tr>
+                            <th class="col-md-2 col-md-offset-2 text-center">退款单号</th>
+                            <th class="col-md-2 text-center">退款金额</th>
+                            <th class="col-md-2 text-center">下单时间</th>
+                            <th class="col-md-2 text-center">状态</th>
+                        </tr>
+                        <tr class="text-center" ng-repeat="r in orderRefund track by $index">
+                            <td class="col-md-2 col-md-offset-2">{{r.refundNo}}</td>
+                            <td class="col-md-2">{{r.amount}}</td>
+                            <td class="col-md-2">{{r.startedAt | date:'yyyy-MM-dd HH:mm:ss'}}</td>
+                            <td class="col-md-2">{{r.status}}</td>
+                        </tr>
+                    </table>
+                </div>
+                <div class="row pageA text-center" ng-init="s='10'">
+                    <button class="btn btn-primary" ng-click="RUpClick()" ng-disabled="opu">上一页</button>
+                    <button class="btn btn-primary" ng-click="RNextClick()" ng-disabled="opd">下一页</button>
+                    <select class="selectpicker" ng-change="changeR(s)" ng-model="s">
+                        <option value="10">10</option>
+                        <option value ="20">20</option>
+                        <option value ="30">30</option>
+                    </select>
+                </div>
+                <div class="btnBox text-center">
+                    <p ng-disabled="disabled" class="btn btn-primary btn-danger" ng-click="refund()">退款</p>
+                    <p class="btn btn-primary" ng-click="cancel()">取消</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="tishi" ng-show="tishi">
+            <!--<div class="container">-->
+                <div class="row tl">
+                    <div class="col-md-10 col-md-offset-1 text-center">
+                        退款后无法恢复，请您谨慎操作!
+                    </div>
+                </div>
+                <div class="row text-center">
+                    <p class="btn btn-primary btn-danger" ng-click="yes()">确认</p>
+                    <p class="btn btn-primary" ng-click="no()">取消</p>
+                </div>
+            <!--</div>-->
+        </div>
+    </div>
+
+</div>
+
+
+</body>
+</html>

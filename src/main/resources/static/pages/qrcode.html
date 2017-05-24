@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="../js/jquery-3.1.0.js"></script>
+    <script src="../js/qrcode.js"></script>
+</head>
+<body>
+<div id="qrcode"></div>
+<img id="qrcode-img"/>
+</body>
+<script>
+    function getUrlParam(name) {
+        //构造一个含有目标参数的正则表达式对象
+        var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)");
+        //匹配目标参数
+        var r = window.location.search.substr(1).match(reg);
+        //返回参数值
+        if (r != null)
+            return unescape(r[2]);
+        return null;
+    }
+
+    function getImgUrlParam() {
+        var url = window.location;
+        var i = (url + "").indexOf('=');
+        var newUrl = (url + "").substring(i + 1, url.length);
+        return newUrl;
+    }
+
+    var codeUrl = getUrlParam("codeUrl");
+    if (codeUrl)
+        jQuery('#qrcode').qrcode({width: 256, height: 256, text: codeUrl});
+    else {
+        var qrCode = getImgUrlParam();
+        var img = $("#qrcode-img");
+
+        img.attr({
+            "src": qrCode
+        });
+    }
+</script>
+</html>
