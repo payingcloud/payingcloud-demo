@@ -58,7 +58,7 @@ class OrderController {
                 return;
         }
         // 其它渠道收款
-        PcChargeRequest chargeRequest = buildChargeRequest(channel, buildChargeReturnUrl(), null, null);
+        PcChargeRequest chargeRequest = buildChargeRequest(channel, buildChargeReturnUrl(), null);
         PcCharge charge = payingcloud.execute(chargeRequest);
         respondCharge(channel, charge, servletResponse);
     }
@@ -70,7 +70,7 @@ class OrderController {
         PcChannelType channel = PcChannelType.valueOf(state);
         String openId = wxBasicApi.getOauth2AccessToken(code).getOpenId();
         String subAppId = wxBasicApi.getAppId();
-        PcChargeRequest chargeRequest = buildChargeRequest(channel, buildChargeReturnUrl(), openId, subAppId);
+        PcChargeRequest chargeRequest = buildChargeRequest(channel, buildChargeReturnUrl(), openId);
         PcCharge charge = payingcloud.execute(chargeRequest);
         respondCharge(channel, charge, servletResponse);
     }
@@ -138,7 +138,7 @@ class OrderController {
         return payingcloud.execute(request);
     }
 
-    private PcChargeRequest buildChargeRequest(PcChannelType channel, String returnUrl, String openId, String subAppId) throws IOException {
+    private PcChargeRequest buildChargeRequest(PcChannelType channel, String returnUrl, String openId) throws IOException {
         String chargeNo = new Date().getTime() + "";
         String subject = "测试商品-" + RandomStringUtils.randomNumeric(8);
         String remark = "备注";
@@ -151,10 +151,6 @@ class OrderController {
             request.withExtra("returnUrl", buildChargeReturnUrl());
         if (openId != null) {
             request.withExtra("openId", openId);
-            request.withExtra("userId", openId);
-        }
-        if (subAppId != null) {
-            request.withExtra("subAppId", subAppId);
         }
         request.setNotifyUrl(buildChargeNotifyUrl());
         return request;
