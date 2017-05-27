@@ -69,7 +69,6 @@ class OrderController {
         // 微信渠道收款
         PcChannelType channel = PcChannelType.valueOf(state);
         String openId = wxBasicApi.getOauth2AccessToken(code).getOpenId();
-        String subAppId = wxBasicApi.getAppId();
         PcChargeRequest chargeRequest = buildChargeRequest(channel, buildChargeReturnUrl(), openId);
         PcCharge charge = payingcloud.execute(chargeRequest);
         respondCharge(channel, charge, servletResponse);
