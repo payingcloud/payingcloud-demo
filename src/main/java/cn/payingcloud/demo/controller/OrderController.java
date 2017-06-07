@@ -3,9 +3,10 @@ package cn.payingcloud.demo.controller;
 import cn.payingcloud.PayingCloud;
 import cn.payingcloud.commons.weixin.basic.WxBasicApi;
 import cn.payingcloud.model.*;
+import cn.payingcloud.util.SignatureUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.URLEncoder;
+import java.security.SignatureException;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
@@ -27,11 +29,10 @@ import java.util.Date;
 @RequestMapping("/order")
 class OrderController {
     private static Logger logger = LoggerFactory.getLogger(OrderController.class);
+    private static ObjectMapper mapper = new ObjectMapper();
 
     private final PayingCloud payingcloud;
     private final WxBasicApi wxBasicApi;
-
-    private static final String rsaPubilcKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCPymtLbRkHgvVfUT933LrwWns6YZHLPpT1pP9TKJ+cgIZiQwZ4mtqoqPHSVtiT5HA8fwFzWuJ/6qWaQhER7TOISUFUHZlHyBjNK/Z5px6PNB7rT4OrLP0KuZ7nuX5qdnOKuAbrj1MBLSinOHQ8tDJhPrPKxuZlKw3SeL5auHlKWwIDAQAB";
 
     @Autowired
     public OrderController(PayingCloud payingcloud, WxBasicApi wxBasicApi) {
@@ -84,8 +85,16 @@ class OrderController {
     @ApiOperation("收款回调（通知）")
     @PostMapping("/charge/success")
     @ResponseBody
-    public String onChargeSuccess(@RequestBody PcCharge charge, @RequestHeader String sign) {
-        logger.info(sign);
+    public String onChargeSuccess(@RequestBody String body, @RequestHeader String sign) throws IOException, SignatureException {
+        logger.info("body:" + body);
+        logger.info("sign:" + sign);
+        if (SignatureUtils.verify(body, sign)) {
+            logger.info("验签通过");
+        } else {
+            logger.error("验签未通过");
+            return "验签未通过";
+        }
+        PcCharge charge = mapper.readValue(body, PcCharge.class);
         String chargeNo = charge.getChargeNo();
         logger.info("收到单号[{}]的收款成功通知", chargeNo);
         return "success";
@@ -110,7 +119,16 @@ class OrderController {
     @ApiOperation("退款回调")
     @PostMapping("/refund/success")
     @ResponseBody
-    public String onRefundSuccess(@RequestBody PcRefund refund) {
+    public String onRefundSuccess(@RequestBody String body, @RequestHeader String sign) throws SignatureException, IOException {
+        logger.info("body:" + body);
+        logger.info("sign:" + sign);
+        if (SignatureUtils.verify(body, sign)) {
+            logger.info("验签通过");
+        } else {
+            logger.error("验签未通过");
+            return "验签未通过";
+        }
+        PcRefund refund = mapper.readValue(body, PcRefund.class);
         String refundNo = refund.getRefundNo();
         logger.info("收到单号[{}]的退款成功通知", refundNo);
         return "success";
@@ -139,7 +157,7 @@ class OrderController {
 
     private PcChargeRequest buildChargeRequest(PcChannelType channel, String returnUrl, String openId) throws IOException {
         String chargeNo = new Date().getTime() + "";
-        String subject = "测试商品-" + RandomStringUtils.randomNumeric(8);
+        String subject = "支付演示";
         String remark = "备注";
         int amount = 1;
         String metadata = "元数据";

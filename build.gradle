@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        mavenLocal()
         maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
         jcenter()
     }
@@ -18,15 +17,14 @@ bootRun {
 }
 
 repositories {
-    mavenLocal()
     maven { url 'http://maven.aliyun.com/nexus/content/groups/public' }
     jcenter()
     maven { url "http://dl.bintray.com/payingcloud/maven" }
 }
 
 dependencies {
-    compile 'cn.payingcloud:commons-weixin:0.2.13'
-    compile 'cn.payingcloud:payingcloud-java-sdk:1.0'
+    compile 'cn.payingcloud:commons-weixin:0.2.12'
+    compile 'cn.payingcloud:payingcloud-java:1.0.5'
     compile 'io.springfox:springfox-swagger2:2.6.1'
     compile 'io.springfox:springfox-swagger-ui:2.6.1'
     compile 'org.springframework.boot:spring-boot-starter-web'
@@ -40,20 +38,21 @@ dependencies {
 import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
 import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
 
+import java.text.SimpleDateFormat
+
 docker {
     registryCredentials {
         url = 'https://registry.cn-beijing.aliyuncs.com'
-        username = project.hasProperty('dockerUser') ? project.property('dockerUser') : '<dockerUser>'
-        password = project.hasProperty('dockerPassword') ? project.property('dockerPassword') : '<dockerPassword>'
+        username = project.hasProperty('dockerUser') ? project.property('dockerUser') : project.getenv('DOCKER_USER')
+        password = project.hasProperty('dockerPassword') ? project.property('dockerPassword') : project.getenv('DOCKER_PASSWORD')
     }
 }
 
 ext {
-    dockerImageName = 'registry.cn-beijing.aliyuncs.com/payingcloud/demo'
+    dockerImageName = 'registry.cn-beijing.aliyuncs.com/payingcloud/demo:' + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date())
 }
 
-task dockerBuild(type: DockerBuildImage) {
-    dependsOn bootRepackage
+task dockerBuild(type: DockerBuildImage, dependsOn: bootRepackage) {
     copy {
         from("src/main/docker/Dockerfile")
         into("build/libs")
@@ -62,7 +61,6 @@ task dockerBuild(type: DockerBuildImage) {
     tag = dockerImageName
 }
 
-task dockerPush(type: DockerPushImage) {
-    dependsOn dockerBuild
-    imageName = dockerImageName
+task dockerPush(type: DockerPushImage, dependsOn: dockerBuild) {
+    imageName = dockerBuild.tag
 }
